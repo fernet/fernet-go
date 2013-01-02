@@ -11,15 +11,17 @@ INSTALL
 	$ go get github.com/kr/fernet
 
 
-USE
+EXAMPLE
 
-	k := fernet.MustDecodeKey(os.Getenv("MYSECRET"))
+	var key = fernet.MustDecodeKey(os.Getenv("MYSECRET"))
 
-	token := k.Generate([]byte("foo"))
-	// ...
-
-	if data := k.Verify(token, time.Minute); data != nil {
+	func main() {
+		token := key.Generate([]byte("foo"))
 		// ...
+
+		if data := key.Verify(token, time.Minute); data != nil {
+			// ...
+		}
 	}
 
 For more information and background, see the original Fernet

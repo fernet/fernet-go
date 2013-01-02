@@ -8,11 +8,6 @@ import (
 	"time"
 )
 
-func ExampleGenKey() {
-	k, _ := fernet.GenKey()
-	fmt.Println("the secret is", k.Encode())
-}
-
 func ExampleKey_Generate() {
 	k := fernet.MustDecodeKey(os.Getenv("MYSECRET"))
 	token, err := k.Generate([]byte("hello"))

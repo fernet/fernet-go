@@ -1,17 +1,9 @@
-// Fernet generates and verifies HMAC-based authentication tokens. It also
-// encrypts data, so it can be used to transmit secure messages over the wire.
+// Package fernet generates and verifies HMAC-based authentication tokens. It
+// also encrypts data, so it can be used to transmit secure messages over the
+// wire.
 //
-//  k := fernet.MustDecodeKey(os.Getenv("MYSECRET"))
-//
-//  token := k.Generate([]byte("foo"))
-//  // ...
-//
-//  if data := k.Verify(token, time.Minute); data != nil {
-//    // ...
-//  }
-//
-// For more information and background, see the original Fernet
-// project at https://github.com/hgmnz/fernet.
+// For more information and background, see the original Fernet project at
+// https://github.com/hgmnz/fernet.
 package fernet
 
 import (

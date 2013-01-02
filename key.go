@@ -32,6 +32,7 @@ func DecodeKey(s string) (*Key, error) {
 }
 
 // MustDecodeKey is like DecodeKey, but panics if an error occurs.
+// It simplifies safe initialization of global variables holding keys.
 func MustDecodeKey(s string) *Key {
 	k, err := DecodeKey(s)
 	if err != nil {
@@ -40,7 +41,7 @@ func MustDecodeKey(s string) *Key {
 	return k
 }
 
-// Generates a random key using crypto/rand.
+// Generates a pseudorandom key using package crypto/rand.
 func GenKey() (*Key, error) {
 	var k Key
 	if _, err := io.ReadFull(rand.Reader, k[:]); err != nil {
