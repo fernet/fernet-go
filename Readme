@@ -3,6 +3,8 @@ authentication tokens for issuing API requests between remote
 servers. It also encrypts data, so it can be used to transmit
 secure messages over the wire.
 
+See http://godoc.org/github.com/kr/fernet for documentation.
+
 
 INSTALL
 
