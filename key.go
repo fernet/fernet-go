@@ -12,7 +12,7 @@ import (
 
 type Key [32]byte
 
-// Decodes base-64 data from s into k.
+// Decodes a base64-encoded key from s and returns it.
 func DecodeKey(s string) (*Key, error) {
 	var k Key
 	var b [(len(k) + 2) / 3 * 3]byte
@@ -56,7 +56,7 @@ func (k *Key) signBytes() []byte {
 	return k[:len(k)/2]
 }
 
-// Returns the base-64 encoding of k.
+// Returns the base64 encoding of k.
 func (k *Key) Encode() string {
 	b := make([]byte, encoding.EncodedLen(len(k)))
 	encoding.Encode(b, k[:])
