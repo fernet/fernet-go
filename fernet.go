@@ -23,6 +23,7 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/binary"
+	"errors"
 	"time"
 )
 
@@ -30,7 +31,10 @@ const maxClockSkew = 60 * time.Second
 
 var encoding = base64.URLEncoding
 
-func gen(src, iv []byte, ts time.Time, k *Key) []byte {
+func gen(src, iv []byte, ts time.Time, k *Key) ([]byte, error) {
+	if *k == (Key{}) {
+		return nil, errors.New("fernet: zero key")
+	}
 	var msg, tok bytes.Buffer
 	binary.Write(&msg, binary.BigEndian, ts.Unix())
 	msg.Write(iv)
@@ -40,7 +44,7 @@ func gen(src, iv []byte, ts time.Time, k *Key) []byte {
 	msg.Write(p)
 	tok.Write(genhmac(msg.Bytes(), k.signBytes()))
 	tok.Write(msg.Bytes())
-	return b64enc(tok.Bytes())
+	return b64enc(tok.Bytes()), nil
 }
 
 func verify(p []byte, ttl time.Duration, now time.Time, k *Key) []byte {

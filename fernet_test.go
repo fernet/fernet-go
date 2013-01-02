@@ -28,6 +28,17 @@ var genTokens = []*test{
 	},
 }
 
+var genErrTokens = []*test{
+	{
+		secret: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+		src:    []byte("hello"),
+		now:    time.Date(1985, time.October, 26, 1, 20, 0, 0, time.FixedZone("PDT", -7*3600)),
+		ttl:    60 * time.Second,
+		token:  []byte("FcrjzZRmwcQIuBDcGCh8nGUB8ZD_mXxjqhMln9aIraAAAAAAHcCesAABAgMEBQYHCAkKCwwNDg8kMx7cZZDiiNuT9qRo32pg"),
+		desc:   "zero-value key",
+	},
+}
+
 var verifyTokens = []*test{
 	{
 		secret: "cw_0x689RpI-jtRR7oE8h_eQsKImvJapLeSbXpwF4e4=",
@@ -117,19 +128,24 @@ var verifyBadTokens = []*test{
 func TestGenerate(t *testing.T) {
 	for _, tok := range genTokens {
 		k := MustDecodeKey(tok.secret)
-		g := gen(tok.src, tok.iv[:], tok.now, k)
+		g, err := gen(tok.src, tok.iv[:], tok.now, k)
 		if !reflect.DeepEqual(g, tok.token) {
 			t.Errorf("%#v", string(g))
+		}
+		if err != nil {
+			t.Errorf("err %v", err)
 		}
 	}
 }
 
-func TestGenerateZeroKey(t *testing.T) {
-	var k Key
-	g, err := k.Generate([]byte("hello"))
-	if err == nil || err.Error() != "zero key" || g != nil {
-		t.Errorf("got %#v", string(g))
-		t.Errorf("err %v", err)
+func TestGenerateErr(t *testing.T) {
+	for _, tok := range genErrTokens {
+		k := MustDecodeKey(tok.secret)
+		g, err := gen(tok.src, tok.iv[:], tok.now, k)
+		if err == nil || err == nil || g != nil {
+			t.Errorf("exp nil, got %#v", string(g))
+			t.Errorf("err %v", err)
+		}
 	}
 }
 

@@ -6,9 +6,10 @@ import (
 	"crypto/rand"
 	"errors"
 	"io"
-	"strconv"
 	"time"
 )
+
+var errKeyLen = errors.New("fernet: key decodes to wrong size")
 
 type Key [32]byte
 
@@ -16,15 +17,15 @@ type Key [32]byte
 func DecodeKey(s string) (*Key, error) {
 	var k Key
 	var b [(len(k) + 2) / 3 * 3]byte
-	if encoding.DecodedLen(len(s)) != len(b) {
-		return nil, keyLenError(len(s))
+	if n := encoding.DecodedLen(len(s)); n != len(b) {
+		return nil, errKeyLen
 	}
 	n, err := encoding.Decode(b[:], []byte(s))
 	if err != nil {
 		return nil, err
 	}
 	if n != len(k) {
-		return nil, keyLenError(len(s))
+		return nil, errKeyLen
 	}
 	copy(k[:], b[:])
 	return &k, nil
@@ -65,14 +66,11 @@ func (k *Key) Encode() string {
 
 // Generates an encrypted fernet token containing msg as its message.
 func (k *Key) Generate(msg []byte) (tok []byte, err error) {
-	if *k == (Key{}) {
-		return nil, errors.New("zero key")
-	}
 	iv := make([]byte, aes.BlockSize)
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
 		return nil, err
 	}
-	return gen(msg, iv, time.Now(), k), nil
+	return gen(msg, iv, time.Now(), k)
 }
 
 // Verifies that tok is a valid fernet token that was signed at most
@@ -83,10 +81,4 @@ func (k *Key) Verify(tok []byte, ttl time.Duration) (msg []byte) {
 		return jsonVerify(tok, ttl, time.Now(), k)
 	}
 	return verify(tok, ttl, time.Now(), k)
-}
-
-type keyLenError int
-
-func (n keyLenError) Error() string {
-	return "fernet: key decodes to " + strconv.Itoa(int(n)) + " bytes"
 }

@@ -16,6 +16,9 @@ const ivCap = (aes.BlockSize + 2) / 3 * 3
 var pipe = []byte{'|'}
 
 func jsonVerify(tok []byte, ttl time.Duration, now time.Time, k *Key) []byte {
+	if *k == (Key{}) {
+		return nil
+	}
 	signingKey, cryptKey := jsonKeys(k)
 	i := bytes.LastIndex(tok, pipe)
 	if i == -1 {
