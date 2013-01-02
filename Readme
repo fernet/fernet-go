@@ -1,0 +1,27 @@
+Fernet allows you to easily generate and verify HMAC-based
+authentication tokens for issuing API requests between remote
+servers. It also encrypts data, so it can be used to transmit
+secure messages over the wire.
+
+
+INSTALL
+
+	$ go get github.com/kr/fernet
+
+
+USE
+
+	k := fernet.MustDecodeKey(os.Getenv("MYSECRET"))
+
+	token := k.Generate([]byte("foo"))
+	// ...
+
+	if data := k.Verify(token, time.Minute); data != nil {
+		// ...
+	}
+
+For more information and background, see the original Fernet
+project at https://github.com/hgmnz/fernet.
+
+Fernet is distributed under the terms of the MIT license.
+See the License file for details.
