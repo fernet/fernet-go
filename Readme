@@ -16,10 +16,10 @@ EXAMPLE
 	var key = fernet.MustDecodeKey(os.Getenv("MYSECRET"))
 
 	func main() {
-		token := key.Generate([]byte("foo"))
+		token := key.EncryptAndSign([]byte("foo"))
 		// ...
 
-		if data := key.Verify(token, time.Minute); data != nil {
+		if data := key.VerifyAndDecrypt(token, time.Minute); data != nil {
 			// ...
 		}
 	}

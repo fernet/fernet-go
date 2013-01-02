@@ -65,8 +65,8 @@ func (k *Key) Encode() string {
 	return string(b)
 }
 
-// Generates an encrypted fernet token containing msg as its message.
-func (k *Key) Generate(msg []byte) (tok []byte, err error) {
+// Encrypts and signs msg with key k and returns the resulting fernet token.
+func (k *Key) EncryptAndSign(msg []byte) (tok []byte, err error) {
 	iv := make([]byte, aes.BlockSize)
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
 		return nil, err
@@ -74,10 +74,11 @@ func (k *Key) Generate(msg []byte) (tok []byte, err error) {
 	return gen(msg, iv, time.Now(), k)
 }
 
-// Verifies that tok is a valid fernet token that was signed at most
-// ttl time ago, and returns the plaintext message contained in it.
+// Verifies that tok is a valid fernet token that was signed at most ttl time
+// ago, and returns the decrypted plaintext message contained in it.
+//
 // Returns nil if tok is invalid.
-func (k *Key) Verify(tok []byte, ttl time.Duration) (msg []byte) {
+func (k *Key) VerifyAndDecrypt(tok []byte, ttl time.Duration) (msg []byte) {
 	if !bytes.Contains(tok, pipe) {
 		return jsonVerify(tok, ttl, time.Now(), k)
 	}

@@ -173,7 +173,7 @@ func TestVerifyBad(t *testing.T) {
 func BenchmarkGenerate(b *testing.B) {
 	k, _ := GenKey()
 	for i := 0; i < b.N; i++ {
-		k.Generate([]byte("hello"))
+		k.EncryptAndSign([]byte("hello"))
 	}
 }
 
