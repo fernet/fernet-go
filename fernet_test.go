@@ -127,7 +127,7 @@ var verifyBadTokens = []*test{
 
 func TestGenerate(t *testing.T) {
 	for _, tok := range genTokens {
-		k := MustDecodeKey(tok.secret)
+		k := Must(DecodeKey(tok.secret))
 		g, err := gen(tok.src, tok.iv[:], tok.now, k)
 		if !reflect.DeepEqual(g, tok.token) {
 			t.Errorf("%#v", string(g))
@@ -140,7 +140,7 @@ func TestGenerate(t *testing.T) {
 
 func TestGenerateErr(t *testing.T) {
 	for _, tok := range genErrTokens {
-		k := MustDecodeKey(tok.secret)
+		k := Must(DecodeKey(tok.secret))
 		g, err := gen(tok.src, tok.iv[:], tok.now, k)
 		if err == nil || err == nil || g != nil {
 			t.Errorf("exp nil, got %#v", string(g))
@@ -152,7 +152,7 @@ func TestGenerateErr(t *testing.T) {
 func TestVerifyOk(t *testing.T) {
 	for i, tok := range verifyTokens {
 		t.Logf("test %d %s", i, tok.desc)
-		k := MustDecodeKey(tok.secret)
+		k := Must(DecodeKey(tok.secret))
 		g := verify(tok.token, tok.ttl, tok.now, k)
 		if !reflect.DeepEqual(g, tok.src) {
 			t.Errorf("got %#v != exp %#v", string(g), string(tok.src))
@@ -163,7 +163,7 @@ func TestVerifyOk(t *testing.T) {
 func TestVerifyBad(t *testing.T) {
 	for i, tok := range verifyBadTokens {
 		t.Logf("test %d %s", i, tok.desc)
-		k := MustDecodeKey(tok.secret)
+		k := Must(DecodeKey(tok.secret))
 		if g := verify(tok.token, tok.ttl, tok.now, k); g != nil {
 			t.Errorf("got %#v", string(g))
 		}
@@ -179,7 +179,7 @@ func BenchmarkGenerate(b *testing.B) {
 
 func BenchmarkVerifyOk(b *testing.B) {
 	tok := verifyTokens[0]
-	k := MustDecodeKey(tok.secret)
+	k := Must(DecodeKey(tok.secret))
 	for i := 0; i < b.N; i++ {
 		verify(tok.token, tok.ttl, tok.now, k)
 	}
@@ -187,7 +187,7 @@ func BenchmarkVerifyOk(b *testing.B) {
 
 func BenchmarkVerifyBad(b *testing.B) {
 	tok := verifyBadTokens[0]
-	k := MustDecodeKey(tok.secret)
+	k := Must(DecodeKey(tok.secret))
 	for i := 0; i < b.N; i++ {
 		verify(tok.token, tok.ttl, tok.now, k)
 	}

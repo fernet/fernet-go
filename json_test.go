@@ -20,7 +20,7 @@ var jsonVerifyTokens = []*test{
 func TestJsonVerifyOk(t *testing.T) {
 	for i, tok := range jsonVerifyTokens {
 		t.Logf("test %d %s", i, tok.desc)
-		k := MustDecodeKey(tok.secret)
+		k := Must(DecodeKey(tok.secret))
 		g := jsonVerify(tok.token, tok.ttl, tok.now, k)
 		if !reflect.DeepEqual(g, tok.src) {
 			t.Errorf("got %#v != exp %#v", string(g), string(tok.src))
@@ -30,7 +30,7 @@ func TestJsonVerifyOk(t *testing.T) {
 
 func BenchmarkJsonVerifyOk(b *testing.B) {
 	tok := jsonVerifyTokens[0]
-	k := MustDecodeKey(tok.secret)
+	k := Must(DecodeKey(tok.secret))
 	for i := 0; i < b.N; i++ {
 		jsonVerify(tok.token, tok.ttl, tok.now, k)
 	}

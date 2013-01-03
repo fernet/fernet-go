@@ -31,10 +31,11 @@ func DecodeKey(s string) (*Key, error) {
 	return &k, nil
 }
 
-// MustDecodeKey is like DecodeKey, but panics if an error occurs.
-// It simplifies safe initialization of global variables holding keys.
-func MustDecodeKey(s string) *Key {
-	k, err := DecodeKey(s)
+// Must is a helper that wraps a call to a function returning (*Key, error)
+// and panics if the error is non-nil. It is intended for use in variable
+// initializations such as
+//	var t = fernet.Must(fernet.DecodeKey("somekey"))
+func Must(k *Key, err error) *Key {
 	if err != nil {
 		panic(err)
 	}
