@@ -9,7 +9,7 @@ import (
 )
 
 func ExampleKey_EncryptAndSign() {
-	k := fernet.MustDecodeKey(os.Getenv("MYSECRET"))
+	k := fernet.Must(fernet.DecodeKey(os.Getenv("MYSECRET")))
 	token, err := k.EncryptAndSign([]byte("hello"))
 	if err == nil {
 		fmt.Println(string(token))
@@ -17,7 +17,7 @@ func ExampleKey_EncryptAndSign() {
 }
 
 func ExampleKey_VerifyAndDecrypt() {
-	k := fernet.MustDecodeKey(os.Getenv("MYSECRET"))
+	k := fernet.Must(fernet.DecodeKey(os.Getenv("MYSECRET")))
 	token := []byte("…")
 	var v struct {
 		Username string
