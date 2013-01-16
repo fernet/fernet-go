@@ -1,7 +1,6 @@
 package fernet
 
 import (
-	"bytes"
 	"crypto/aes"
 	"crypto/rand"
 	"errors"
@@ -79,8 +78,5 @@ func (k *Key) EncryptAndSign(msg []byte) (tok []byte, err error) {
 //
 // Returns nil if tok is invalid.
 func (k *Key) VerifyAndDecrypt(tok []byte, ttl time.Duration) (msg []byte) {
-	if !bytes.Contains(tok, pipe) {
-		return jsonVerify(tok, ttl, time.Now(), k)
-	}
 	return verify(tok, ttl, time.Now(), k)
 }
