@@ -3,6 +3,10 @@ authentication tokens for issuing API requests between remote
 servers. It also encrypts data, so it can be used to transmit
 secure messages over the wire.
 
+This package is compatible with the Ruby implementation at
+https://github.com/hgmnz/fernet. They can exchange tokens
+freely in both directions.
+
 See http://godoc.org/github.com/kr/fernet for documentation.
 
 
