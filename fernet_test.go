@@ -53,7 +53,6 @@ var verifyTokens = []*test{
 var verifyBadTokens = []*test{
 	{
 		secret: "cw_0x689RpI-jtRR7oE8h_eQsKImvJapLeSbXpwF4e4=",
-		src:    []byte("hello"),
 		now:    time.Date(1985, time.October, 26, 1, 20, 1, 0, time.FixedZone("PDT", -7*3600)),
 		ttl:    60 * time.Second,
 		token:  []byte("rn9hs9yS0GVWjk4hH822VIwQUWz-_WZWCLzsD7SgV2IAAAAAHcCesAABAgMEBQYHCAkKCwwNDg8tNtXKRlVimf3hMAhjOASy"),
@@ -61,7 +60,6 @@ var verifyBadTokens = []*test{
 	},
 	{
 		secret: "cw_0x689RpI-jtRR7oE8h_eQsKImvJapLeSbXpwF4e4=",
-		src:    []byte("hello"),
 		now:    time.Date(1985, time.October, 26, 1, 20, 1, 0, time.FixedZone("PDT", -7*3600)),
 		ttl:    60 * time.Second,
 		token:  []byte("91GVdgz7jmWR6vJiViEA4u-LhVMhCSr87INSeFwwkYAAAAAAHcCesAABAgMEBQYHCAkKCw=="),
@@ -69,7 +67,6 @@ var verifyBadTokens = []*test{
 	},
 	{
 		secret: "cw_0x689RpI-jtRR7oE8h_eQsKImvJapLeSbXpwF4e4=",
-		src:    []byte("hello"),
 		now:    time.Date(1985, time.October, 26, 1, 20, 1, 0, time.FixedZone("PDT", -7*3600)),
 		ttl:    60 * time.Second,
 		token:  []byte("%%%%%%%%%%%j-ztUarjDIfllJBmLiBMjfcmZesHVIhcAAAAAHcCesAABAgMEBQYHCAkKCwwNDg8tNtXKRlVimf3hMAhjOASy"),
@@ -77,7 +74,6 @@ var verifyBadTokens = []*test{
 	},
 	{
 		secret: "cw_0x689RpI-jtRR7oE8h_eQsKImvJapLeSbXpwF4e4=",
-		src:    []byte("hello"),
 		now:    time.Date(1985, time.October, 26, 1, 20, 1, 0, time.FixedZone("PDT", -7*3600)),
 		ttl:    60 * time.Second,
 		token:  []byte("r-pDJRzyfnW4rYfh-gZek3qA3lnFG8fGaf0qgmZlPL8AAAAAHcCesAABAgMEBQYHCAkKCwwNDg8tNtXKRlVimf3hMAhjOAQ="),
@@ -85,7 +81,6 @@ var verifyBadTokens = []*test{
 	},
 	{
 		secret: "cw_0x689RpI-jtRR7oE8h_eQsKImvJapLeSbXpwF4e4=",
-		src:    []byte("hello"),
 		now:    time.Date(1985, time.October, 26, 1, 20, 1, 0, time.FixedZone("PDT", -7*3600)),
 		ttl:    60 * time.Second,
 		token:  []byte("ApoqRxzlU8Z9-mPSV6ufXeIgKugRjI_-ugnnqqoCTjQAAAAAHcCesAABAgMEBQYHCAkKCwwNDg91rx5fbHkRnpZBxpOuEAjd"),
@@ -93,7 +88,6 @@ var verifyBadTokens = []*test{
 	},
 	{
 		secret: "cw_0x689RpI-jtRR7oE8h_eQsKImvJapLeSbXpwF4e4=",
-		src:    []byte("hello"),
 		now:    time.Date(1985, time.October, 26, 1, 20, 1, 0, time.FixedZone("PDT", -7*3600)),
 		ttl:    60 * time.Second,
 		token:  []byte("M0oOEQn9ZTWz212mKeX0qRyi7-wYxJFfsmDMhRazEeAAAAAAVigfvAABAgMEBQYHCAkKCwwNDg8tNtXKRlVimf3hMAhjOASy"),
@@ -101,7 +95,6 @@ var verifyBadTokens = []*test{
 	},
 	{
 		secret: "cw_0x689RpI-jtRR7oE8h_eQsKImvJapLeSbXpwF4e4=",
-		src:    []byte("hello"),
 		now:    time.Date(1985, time.October, 26, 1, 21, 1, 0, time.FixedZone("PDT", -7*3600)),
 		ttl:    60 * time.Second,
 		token:  []byte("2woUxqnnpRAj-ztUarjDIfllJBmLiBMjfcmZesHVIhcAAAAAHcCesAABAgMEBQYHCAkKCwwNDg8tNtXKRlVimf3hMAhjOASy"),
@@ -109,7 +102,6 @@ var verifyBadTokens = []*test{
 	},
 	{
 		secret: "cw_0x689RpI-jtRR7oE8h_eQsKImvJapLeSbXpwF4e4=",
-		src:    []byte("hello"),
 		now:    time.Date(1985, time.October, 26, 1, 20, 1, 0, time.FixedZone("PDT", -7*3600)),
 		ttl:    60 * time.Second,
 		token:  []byte("fe5sCHPyF13H837yvtc65xAlWfXXP3fEUX_jMiB74EwAAAAAHcCesHV0d3ZxcHNyfXx_fnl4e3otNtXKRlVimf3hMAhjOASy"),
@@ -117,7 +109,6 @@ var verifyBadTokens = []*test{
 	},
 	{
 		secret: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-		src:    []byte("hello"),
 		now:    time.Date(1985, time.October, 26, 1, 20, 1, 0, time.FixedZone("PDT", -7*3600)),
 		ttl:    60 * time.Second,
 		token:  []byte("FcrjzZRmwcQIuBDcGCh8nGUB8ZD_mXxjqhMln9aIraAAAAAAHcCesAABAgMEBQYHCAkKCwwNDg8kMx7cZZDiiNuT9qRo32pg"),
