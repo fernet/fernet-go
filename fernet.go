@@ -43,7 +43,7 @@ func verify(p []byte, ttl time.Duration, now time.Time, k *Key) []byte {
 	if *k == (Key{}) {
 		return nil
 	}
-	tok := b64dec(make([]byte, encoding.DecodedLen(len(p))), p)
+	tok := b64dec(p)
 	r := bytes.NewBuffer(tok)
 	var h struct {
 		HMAC     [sha256.Size]byte
@@ -101,10 +101,8 @@ func b64enc(src []byte) []byte {
 	return dst
 }
 
-func b64dec(dst, src []byte) []byte {
-	if encoding.DecodedLen(len(src)) > len(dst) {
-		return nil
-	}
+func b64dec(src []byte) []byte {
+	dst := make([]byte, encoding.DecodedLen(len(src)))
 	n, err := encoding.Decode(dst, src)
 	if err != nil {
 		return nil
