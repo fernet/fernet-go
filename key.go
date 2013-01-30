@@ -15,18 +15,14 @@ type Key [32]byte
 // Decodes a base64-encoded key from s and returns it.
 func DecodeKey(s string) (*Key, error) {
 	var k Key
-	var b [(len(k) + 2) / 3 * 3]byte
-	if n := encoding.DecodedLen(len(s)); n != len(b) {
-		return nil, errKeyLen
-	}
-	n, err := encoding.Decode(b[:], []byte(s))
+	b, err := encoding.DecodeString(s)
 	if err != nil {
 		return nil, err
 	}
-	if n != len(k) {
+	if len(b) != len(k) {
 		return nil, errKeyLen
 	}
-	copy(k[:], b[:])
+	copy(k[:], b)
 	return &k, nil
 }
 
@@ -59,9 +55,7 @@ func (k *Key) signBytes() []byte {
 
 // Returns the base64 encoding of k.
 func (k *Key) Encode() string {
-	b := make([]byte, encoding.EncodedLen(len(k)))
-	encoding.Encode(b, k[:])
-	return string(b)
+	return encoding.EncodeToString(k[:])
 }
 
 // Encrypts and signs msg with key k and returns the resulting fernet token.
