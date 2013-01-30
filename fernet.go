@@ -85,6 +85,7 @@ func pad(p []byte, k int) []byte {
 // Removes PKCS #7 standard block padding from p.
 // See http://tools.ietf.org/html/rfc5652#section-6.3.
 // This function is the inverse of pad.
+// If the padding is not well-formed, unpad returns nil.
 func unpad(p []byte) []byte {
 	c := p[len(p)-1]
 	for i := len(p) - int(c); i < len(p); i++ {

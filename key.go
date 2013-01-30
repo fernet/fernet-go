@@ -12,7 +12,7 @@ var errKeyLen = errors.New("fernet: key decodes to wrong size")
 
 type Key [32]byte
 
-// Decodes a base64-encoded key from s and returns it.
+// Decodes a URL-safe base64-encoded key from s and returns it.
 func DecodeKey(s string) (*Key, error) {
 	var k Key
 	b, err := encoding.DecodeString(s)
@@ -53,7 +53,7 @@ func (k *Key) signBytes() []byte {
 	return k[:len(k)/2]
 }
 
-// Returns the base64 encoding of k.
+// Returns the URL-safe base64 encoding of k.
 func (k *Key) Encode() string {
 	return encoding.EncodeToString(k[:])
 }
