@@ -1,29 +1,25 @@
 package fernet_test
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/kr/fernet"
-	"os"
 	"time"
 )
 
-func ExampleKey_EncryptAndSign() {
-	k := fernet.MustDecodeKey(os.Getenv("MYSECRET"))
-	token, err := k.EncryptAndSign([]byte("hello"))
-	if err == nil {
-		fmt.Println(string(token))
+func Example() {
+	w := "hello"
+	fmt.Println(w)
+	k, err := fernet.GenKey()
+	if err != nil {
+		panic(err)
 	}
-}
-
-func ExampleKey_VerifyAndDecrypt() {
-	k := fernet.MustDecodeKey(os.Getenv("MYSECRET"))
-	token := []byte("…")
-	var v struct {
-		Username string
+	token, err := k.EncryptAndSign([]byte(w))
+	if err != nil {
+		panic(err)
 	}
-	err := json.Unmarshal(k.VerifyAndDecrypt(token, 60*time.Second), &v)
-	if err == nil {
-		fmt.Println(v.Username)
-	}
+	g := k.VerifyAndDecrypt(token, 60*time.Second)
+	fmt.Println(string(g))
+	// Output:
+	// hello
+	// hello
 }
