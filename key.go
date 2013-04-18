@@ -60,11 +60,18 @@ func (k *Key) Encode() string {
 
 // Encrypts and signs msg with key k and returns the resulting fernet token.
 func (k *Key) EncryptAndSign(msg []byte) (tok []byte, err error) {
+	if k == nil || *k == (Key{}) {
+		return nil, errors.New("fernet: zero key")
+	}
 	iv := make([]byte, aes.BlockSize)
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
 		return nil, err
 	}
-	return gen(msg, iv, time.Now(), k)
+	b := make([]byte, encodedLen(len(msg)))
+	n := gen(b, msg, iv, time.Now(), k)
+	tok = make([]byte, encoding.EncodedLen(n))
+	encoding.Encode(tok, b[:n])
+	return tok, nil
 }
 
 // Verifies that tok is a valid fernet token that was signed at most ttl time
@@ -72,5 +79,10 @@ func (k *Key) EncryptAndSign(msg []byte) (tok []byte, err error) {
 //
 // Returns nil if tok is invalid.
 func (k *Key) VerifyAndDecrypt(tok []byte, ttl time.Duration) (msg []byte) {
-	return verify(tok, ttl, time.Now(), k)
+	if k == nil || *k == (Key{}) {
+		return nil
+	}
+	b := make([]byte, encoding.DecodedLen(len(tok)))
+	n, _ := encoding.Decode(b, tok)
+	return verify(nil, b[:n], ttl, time.Now(), k)
 }

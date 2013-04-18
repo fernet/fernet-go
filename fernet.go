@@ -7,7 +7,6 @@
 package fernet
 
 import (
-	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/hmac"
@@ -15,71 +14,86 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/binary"
-	"errors"
 	"time"
 )
 
-const maxClockSkew = 60 * time.Second
+const (
+	version      byte = 0x80
+	tsOffset          = 1
+	ivOffset          = tsOffset + 8
+	payOffset         = ivOffset + aes.BlockSize
+	overhead          = 1 + 8 + aes.BlockSize + sha256.Size // ver + ts + iv + hmac
+	maxClockSkew      = 60 * time.Second
+)
 
 var encoding = base64.URLEncoding
 
-func gen(src, iv []byte, ts time.Time, k *Key) ([]byte, error) {
-	if *k == (Key{}) {
-		return nil, errors.New("fernet: zero key")
-	}
-	var msg, tok bytes.Buffer
-	binary.Write(&msg, binary.BigEndian, ts.Unix())
-	msg.Write(iv)
-	p := pad(src, aes.BlockSize)
+// generates a token from msg, writes it into tok, and returns the
+// number of bytes generated, which is encodedLen(msg).
+// len(tok) must be >= encodedLen(len(msg))
+func gen(tok, msg, iv []byte, ts time.Time, k *Key) int {
+	tok[0] = version
+	binary.BigEndian.PutUint64(tok[tsOffset:], uint64(ts.Unix()))
+	copy(tok[ivOffset:], iv)
+	p := tok[payOffset:]
+	n := pad(p, msg, aes.BlockSize)
 	bc, _ := aes.NewCipher(k.cryptBytes())
-	cipher.NewCBCEncrypter(bc, iv).CryptBlocks(p, p)
-	msg.Write(p)
-	tok.Write(genhmac(msg.Bytes(), k.signBytes()))
-	tok.Write(msg.Bytes())
-	return b64enc(tok.Bytes()), nil
+	cipher.NewCBCEncrypter(bc, iv).CryptBlocks(p[:n], p[:n])
+	genhmac(p[n:n], tok[:payOffset+n], k.signBytes())
+	return payOffset + n + sha256.Size
 }
 
-func verify(p []byte, ttl time.Duration, now time.Time, k *Key) []byte {
-	if *k == (Key{}) {
+// token length for input msg of length n, not including base64
+func encodedLen(n int) int {
+	const k = aes.BlockSize
+	return n/k*k + k + overhead
+}
+
+// max msg length for tok of length n, for binary token (no base64)
+// upper bound; not exact
+func decodedLen(n int) int {
+	return n - overhead
+}
+
+// if msg is nil, decrypts in place and returns a slice of tok.
+func verify(msg, tok []byte, ttl time.Duration, now time.Time, k *Key) []byte {
+	if tok[0] != version {
 		return nil
 	}
-	tok := b64dec(p)
-	r := bytes.NewBuffer(tok)
-	var h struct {
-		HMAC     [sha256.Size]byte
-		IssuedAt int64
-		IV       [aes.BlockSize]byte
-	}
-	err := binary.Read(r, binary.BigEndian, &h)
-	if err != nil {
+	n := len(tok) - sha256.Size
+	var hmac [sha256.Size]byte
+	genhmac(hmac[:0], tok[:n], k.signBytes())
+	if subtle.ConstantTimeCompare(tok[n:], hmac[:]) != 1 {
 		return nil
 	}
-	if subtle.ConstantTimeCompare(h.HMAC[:], genhmac(tok[len(h.HMAC):], k.signBytes())) != 1 {
-		return nil
-	}
-	ts := time.Unix(h.IssuedAt, 0)
+	ts := time.Unix(int64(binary.BigEndian.Uint64(tok[1:])), 0)
 	if now.After(ts.Add(ttl)) || ts.After(now.Add(maxClockSkew)) {
 		return nil
 	}
-	msg := r.Bytes()
-	if len(msg)%aes.BlockSize != 0 {
+	pay := tok[payOffset : len(tok)-sha256.Size]
+	if len(pay)%aes.BlockSize != 0 {
 		return nil
 	}
+	if msg != nil {
+		copy(msg, pay)
+		pay = msg
+	}
 	bc, _ := aes.NewCipher(k.cryptBytes())
-	cipher.NewCBCDecrypter(bc, h.IV[:]).CryptBlocks(msg, msg)
-	return unpad(msg)
+	iv := tok[9:][:aes.BlockSize]
+	cipher.NewCBCDecrypter(bc, iv).CryptBlocks(pay, pay)
+	return unpad(pay)
 }
 
 // Pads p to a multiple of k using PKCS #7 standard block padding.
 // See http://tools.ietf.org/html/rfc5652#section-6.3.
-func pad(p []byte, k int) []byte {
-	q := make([]byte, len(p)/k*k+k)
+func pad(q, p []byte, k int) int {
+	n := len(p)/k*k + k
 	copy(q, p)
-	c := byte(len(q) - len(p))
-	for i := len(p); i < len(q); i++ {
+	c := byte(n - len(p))
+	for i := len(p); i < n; i++ {
 		q[i] = c
 	}
-	return q
+	return n
 }
 
 // Removes PKCS #7 standard block padding from p.
@@ -111,8 +125,8 @@ func b64dec(src []byte) []byte {
 	return dst[:n]
 }
 
-func genhmac(p, k []byte) []byte {
+func genhmac(q, p, k []byte) {
 	h := hmac.New(sha256.New, k)
 	h.Write(p)
-	return h.Sum(nil)
+	h.Sum(q)
 }
