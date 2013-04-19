@@ -14,6 +14,13 @@
     "secret": "cw_0x689RpI-jtRR7oE8h_eQsKImvJapLeSbXpwF4e4="
   },
   {
+    "desc": "invalid base64",
+    "token": "%%%%%%%%%%%%%AECAwQFBgcICQoLDA0OD3HkMATM5lFqGaerZ-fWPAl1-szkFVzXTuGb4hR8AKtwcaX1YdykRtfsH-p1YsUD2Q==",
+    "now": "1985-10-26T01:20:01-07:00",
+    "ttl_sec": 60,
+    "secret": "cw_0x689RpI-jtRR7oE8h_eQsKImvJapLeSbXpwF4e4="
+  },
+  {
     "desc": "payload size not multiple of block size",
     "token": "gAAAAAAdwJ6xAAECAwQFBgcICQoLDA0OD3HkMATM5lFqGaerZ-fWPOm73QeoCk9uGib28Xe5vz6oxq5nmxbx_v7mrfyudzUm",
     "now": "1985-10-26T01:20:01-07:00",

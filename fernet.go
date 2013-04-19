@@ -57,7 +57,7 @@ func decodedLen(n int) int {
 
 // if msg is nil, decrypts in place and returns a slice of tok.
 func verify(msg, tok []byte, ttl time.Duration, now time.Time, k *Key) []byte {
-	if tok[0] != version {
+	if len(tok) < 1 || tok[0] != version {
 		return nil
 	}
 	n := len(tok) - sha256.Size

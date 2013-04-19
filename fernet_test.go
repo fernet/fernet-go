@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"io"
 	"os"
-	"reflect"
 	"testing"
 	"time"
 )
@@ -18,7 +17,7 @@ type test struct {
 	IV     [aes.BlockSize]byte
 	Now    time.Time
 	TTLSec int `json:"ttl_sec"`
-	Token  []byte
+	Token  string
 	Desc   string
 }
 
@@ -42,12 +41,13 @@ func TestGenerate(t *testing.T) {
 		if n != len(g) {
 			t.Errorf("want %v, got %v", len(g), n)
 		}
-		if !reflect.DeepEqual(g, tok.Token) {
-			t.Errorf("want %v, got %v", tok.Token, g)
+		s := base64.URLEncoding.EncodeToString(g)
+		if s != tok.Token {
+			t.Errorf("want %q, got %q", tok.Token, g)
 			t.Log("want")
 			dumpTok(t, tok.Token, len(tok.Token))
 			t.Log("got")
-			dumpTok(t, g, n)
+			dumpTok(t, s, n)
 		}
 	}
 }
@@ -60,7 +60,8 @@ func TestVerifyOk(t *testing.T) {
 		t.Log("tok")
 		dumpTok(t, tok.Token, len(tok.Token))
 		ttl := time.Duration(tok.TTLSec) * time.Second
-		g := verify(nil, tok.Token, ttl, tok.Now, &k)
+		b := mustBase64DecodeString(tok.Token)
+		g := verify(nil, b, ttl, tok.Now, &k)
 		if string(g) != tok.Src {
 			t.Errorf("got %#v != exp %#v", string(g), tok.Src)
 		}
@@ -69,12 +70,35 @@ func TestVerifyOk(t *testing.T) {
 
 func TestVerifyBad(t *testing.T) {
 	for i, tok := range mustLoadTests("invalid.json") {
+		if tok.Desc == "invalid base64" {
+			continue
+		}
+		t.Logf("test %d %s", i, tok.Desc)
+		t.Log(tok.Token)
+		b, err := base64.URLEncoding.DecodeString(tok.Token)
+		if err != nil {
+			panic(err)
+		}
+		var k Key
+		copy(k[:], tok.Secret)
+		ttl := time.Duration(tok.TTLSec) * time.Second
+		if g := verify(nil, b, ttl, tok.Now, &k); g != nil {
+			t.Errorf("got %#v", string(g))
+		}
+	}
+}
+
+func TestVerifyBadBase64(t *testing.T) {
+	for i, tok := range mustLoadTests("invalid.json") {
+		if tok.Desc != "invalid base64" {
+			continue
+		}
 		t.Logf("test %d %s", i, tok.Desc)
 		t.Log(tok.Token)
 		var k Key
 		copy(k[:], tok.Secret)
 		ttl := time.Duration(tok.TTLSec) * time.Second
-		if g := verify(nil, tok.Token, ttl, tok.Now, &k); g != nil {
+		if g := k.VerifyAndDecrypt([]byte(tok.Token), ttl); g != nil {
 			t.Errorf("got %#v", string(g))
 		}
 	}
@@ -95,29 +119,47 @@ func BenchmarkGenerate(b *testing.B) {
 }
 
 func BenchmarkVerifyOk(b *testing.B) {
-	tok := mustLoadTests("verify.json")[0]
+	t := mustLoadTests("verify.json")[0]
 	var k Key
-	copy(k[:], tok.Secret)
-	ttl := time.Duration(tok.TTLSec) * time.Second
+	copy(k[:], t.Secret)
+	ttl := time.Duration(t.TTLSec) * time.Second
+	tok := mustBase64DecodeString(t.Token)
 	for i := 0; i < b.N; i++ {
-		verify(nil, tok.Token, ttl, tok.Now, &k)
+		verify(nil, tok, ttl, t.Now, &k)
 	}
 }
 
 func BenchmarkVerifyBad(b *testing.B) {
-	tok := mustLoadTests("invalid.json")[0]
+	t := mustLoadTests("invalid.json")[0]
 	var k Key
-	copy(k[:], tok.Secret)
-	ttl := time.Duration(tok.TTLSec) * time.Second
+	copy(k[:], t.Secret)
+	ttl := time.Duration(t.TTLSec) * time.Second
+	tok := mustBase64DecodeString(t.Token)
 	for i := 0; i < b.N; i++ {
-		verify(nil, tok.Token, ttl, tok.Now, &k)
+		verify(nil, tok, ttl, t.Now, &k)
 	}
 }
 
-func dumpTok(t *testing.T, tok []byte, n int) {
-	t.Log(tok[0])
-	t.Log(tok[1:][:8])
-	t.Log(tok[9:][:16])
-	t.Log(tok[25 : n-32])
-	t.Log(tok[n-32 : n])
+func dumpTok(t *testing.T, s string, n int) {
+	tok := mustBase64DecodeString(s)
+	dumpField(t, tok, 0, 1)
+	dumpField(t, tok, 1, 1+8)
+	dumpField(t, tok, 1+8, 1+8+16)
+	dumpField(t, tok, 1+8+16, n-32)
+	dumpField(t, tok, n-32, n)
+}
+
+func dumpField(t *testing.T, b []byte, n, e int) {
+	if len(b) < e {
+		e = len(b)
+	}
+	t.Log(b[n:e])
+}
+
+func mustBase64DecodeString(s string) []byte {
+	b, err := base64.URLEncoding.DecodeString(s)
+	if err != nil {
+		panic(err)
+	}
+	return b
 }
