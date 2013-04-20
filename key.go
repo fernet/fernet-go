@@ -3,6 +3,7 @@ package fernet
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"io"
 )
@@ -30,9 +31,19 @@ func (k *Key) Encode() string {
 	return encoding.EncodeToString(k[:])
 }
 
-// Decodes a URL-safe base64-encoded key from s and returns it.
+// Decodes a key from s and returns it. The key can be in
+// hexadecimal, standard base64, or URL-safe base64.
 func DecodeKey(s string) (*Key, error) {
-	b, err := base64.URLEncoding.DecodeString(s)
+	var b []byte
+	var err error
+	if len(s) == hex.EncodedLen(len(Key{})) {
+		b, err = hex.DecodeString(s)
+	} else {
+		b, err = base64.StdEncoding.DecodeString(s)
+		if err != nil {
+			b, err = base64.URLEncoding.DecodeString(s)
+		}
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +55,8 @@ func DecodeKey(s string) (*Key, error) {
 	return k, nil
 }
 
-// Decodes URL-safe base64-encoded keys from a and returns them.
+// Decodes each element of a using DecodeKey returns the resulting
+// keys.
 func DecodeKeys(a ...string) ([]*Key, error) {
 	var err error
 	ks := make([]*Key, len(a))
