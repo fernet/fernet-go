@@ -15,19 +15,6 @@ INSTALL
 	$ go get github.com/kr/fernet
 
 
-EXAMPLE
-
-	var key = fernet.MustDecodeKey(os.Getenv("MYSECRET"))
-
-	func main() {
-		token := key.EncryptAndSign([]byte("foo"))
-		// ...
-
-		if data := key.VerifyAndDecrypt(token, time.Minute); data != nil {
-			// ...
-		}
-	}
-
 For more information and background, see the original Fernet
 project at https://github.com/hgmnz/fernet.
 
