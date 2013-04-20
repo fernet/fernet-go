@@ -32,12 +32,12 @@ var keys = []struct {
 	},
 }
 
-func TestDecodeKey(t *testing.T) {
+func TestDecodeKeys(t *testing.T) {
 	for _, w := range keys {
 		if g, err := DecodeKey(w.enc); err != nil {
 			t.Fatal(err)
 		} else if *g != w.key {
-			t.Fatalf("expected %q, got %q", w.key, g)
+			t.Fatalf("expected %q, got %q", w.key, *g)
 		}
 	}
 }

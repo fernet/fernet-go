@@ -12,7 +12,7 @@ import (
 )
 
 type test struct {
-	Secret []byte
+	Secret string
 	Src    string
 	IV     [aes.BlockSize]byte
 	Now    time.Time
@@ -22,7 +22,6 @@ type test struct {
 }
 
 func mustLoadTests(path string) []test {
-	base64.StdEncoding = base64.URLEncoding
 	var ts []test
 	if f, err := os.Open(path); err != nil {
 		panic(err)
@@ -34,10 +33,9 @@ func mustLoadTests(path string) []test {
 
 func TestGenerate(t *testing.T) {
 	for _, tok := range mustLoadTests("generate.json") {
-		var k Key
-		copy(k[:], tok.Secret)
+		k := MustDecodeKeys(tok.Secret)
 		g := make([]byte, encodedLen(len(tok.Src)))
-		n := gen(g, []byte(tok.Src), tok.IV[:], tok.Now, &k)
+		n := gen(g, []byte(tok.Src), tok.IV[:], tok.Now, k[0])
 		if n != len(g) {
 			t.Errorf("want %v, got %v", len(g), n)
 		}
@@ -55,13 +53,12 @@ func TestGenerate(t *testing.T) {
 func TestVerifyOk(t *testing.T) {
 	for i, tok := range mustLoadTests("verify.json") {
 		t.Logf("test %d %s", i, tok.Desc)
-		var k Key
-		copy(k[:], tok.Secret)
+		k := MustDecodeKeys(tok.Secret)
 		t.Log("tok")
 		dumpTok(t, tok.Token, len(tok.Token))
 		ttl := time.Duration(tok.TTLSec) * time.Second
 		b := mustBase64DecodeString(tok.Token)
-		g := verify(nil, b, ttl, tok.Now, &k)
+		g := verify(nil, b, ttl, tok.Now, k[0])
 		if string(g) != tok.Src {
 			t.Errorf("got %#v != exp %#v", string(g), tok.Src)
 		}
@@ -79,10 +76,9 @@ func TestVerifyBad(t *testing.T) {
 		if err != nil {
 			panic(err)
 		}
-		var k Key
-		copy(k[:], tok.Secret)
+		k := MustDecodeKeys(tok.Secret)
 		ttl := time.Duration(tok.TTLSec) * time.Second
-		if g := verify(nil, b, ttl, tok.Now, &k); g != nil {
+		if g := verify(nil, b, ttl, tok.Now, k[0]); g != nil {
 			t.Errorf("got %#v", string(g))
 		}
 	}
@@ -95,17 +91,17 @@ func TestVerifyBadBase64(t *testing.T) {
 		}
 		t.Logf("test %d %s", i, tok.Desc)
 		t.Log(tok.Token)
-		var k Key
-		copy(k[:], tok.Secret)
+		k := MustDecodeKeys(tok.Secret)
 		ttl := time.Duration(tok.TTLSec) * time.Second
-		if g := k.VerifyAndDecrypt([]byte(tok.Token), ttl); g != nil {
+		if g := VerifyAndDecrypt([]byte(tok.Token), ttl, k); g != nil {
 			t.Errorf("got %#v", string(g))
 		}
 	}
 }
 
 func BenchmarkGenerate(b *testing.B) {
-	k, _ := GenKey()
+	k := new(Key)
+	k.Generate()
 	msg := []byte("hello")
 	g := make([]byte, encodedLen(len(msg)))
 	for i := 0; i < b.N; i++ {
@@ -120,23 +116,21 @@ func BenchmarkGenerate(b *testing.B) {
 
 func BenchmarkVerifyOk(b *testing.B) {
 	t := mustLoadTests("verify.json")[0]
-	var k Key
-	copy(k[:], t.Secret)
+	k := MustDecodeKeys(t.Secret)
 	ttl := time.Duration(t.TTLSec) * time.Second
 	tok := mustBase64DecodeString(t.Token)
 	for i := 0; i < b.N; i++ {
-		verify(nil, tok, ttl, t.Now, &k)
+		verify(nil, tok, ttl, t.Now, k[0])
 	}
 }
 
 func BenchmarkVerifyBad(b *testing.B) {
 	t := mustLoadTests("invalid.json")[0]
-	var k Key
-	copy(k[:], t.Secret)
+	k := MustDecodeKeys(t.Secret)
 	ttl := time.Duration(t.TTLSec) * time.Second
 	tok := mustBase64DecodeString(t.Token)
 	for i := 0; i < b.N; i++ {
-		verify(nil, tok, ttl, t.Now, &k)
+		verify(nil, tok, ttl, t.Now, k[0])
 	}
 }
 

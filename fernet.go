@@ -10,10 +10,12 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/hmac"
+	"crypto/rand"
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/binary"
+	"io"
 	"time"
 )
 
@@ -129,4 +131,33 @@ func genhmac(q, p, k []byte) {
 	h := hmac.New(sha256.New, k)
 	h.Write(p)
 	h.Sum(q)
+}
+
+// Encrypts and signs msg with key k and returns the resulting
+// fernet token.
+func EncryptAndSign(msg []byte, k *Key) (tok []byte, err error) {
+	iv := make([]byte, aes.BlockSize)
+	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
+		return nil, err
+	}
+	b := make([]byte, encodedLen(len(msg)))
+	n := gen(b, msg, iv, time.Now(), k)
+	tok = make([]byte, encoding.EncodedLen(n))
+	encoding.Encode(tok, b[:n])
+	return tok, nil
+}
+
+// Verifies that tok is a valid fernet token that was signed with
+// a key in k at most ttl time ago. Returns the message contained
+// in tok if tok is valid, otherwise nil.
+func VerifyAndDecrypt(tok []byte, ttl time.Duration, k []*Key) (msg []byte) {
+	b := make([]byte, encoding.DecodedLen(len(tok)))
+	n, _ := encoding.Decode(b, tok)
+	for _, k1 := range k {
+		msg = verify(nil, b[:n], ttl, time.Now(), k1)
+		if msg != nil {
+			return msg
+		}
+	}
+	return nil
 }

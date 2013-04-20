@@ -7,19 +7,13 @@ import (
 )
 
 func Example() {
-	w := "hello"
-	fmt.Println(w)
-	k, err := fernet.GenKey()
+	k := fernet.MustDecodeKeys("cw_0x689RpI-jtRR7oE8h_eQsKImvJapLeSbXpwF4e4=")
+	tok, err := fernet.EncryptAndSign([]byte("hello"), k[0])
 	if err != nil {
 		panic(err)
 	}
-	token, err := k.EncryptAndSign([]byte(w))
-	if err != nil {
-		panic(err)
-	}
-	g := k.VerifyAndDecrypt(token, 60*time.Second)
-	fmt.Println(string(g))
+	msg := fernet.VerifyAndDecrypt(tok, 60*time.Second, k)
+	fmt.Println(string(msg))
 	// Output:
-	// hello
 	// hello
 }
