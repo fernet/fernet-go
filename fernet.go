@@ -135,7 +135,8 @@ func genhmac(q, p, k []byte) {
 }
 
 // Encrypts and signs msg with key k and returns the resulting
-// fernet token.
+// fernet token. If msg contains text, the text should be encoded
+// with UTF-8 to follow fernet convention.
 func EncryptAndSign(msg []byte, k *Key) (tok []byte, err error) {
 	iv := make([]byte, aes.BlockSize)
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
