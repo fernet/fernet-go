@@ -1,13 +1,13 @@
-Fernet allows you to easily generate and verify HMAC-based
-authentication tokens for issuing API requests between remote
-servers. It also encrypts data, so it can be used to transmit
-secure messages over the wire.
+Fernet takes a user-provided *message* (an arbitrary sequence of
+bytes), a *key* (256 bits of entropy), and the current time, and
+produces a *token*, which contains the message in a form that
+can't be read or altered without the key.
 
 This package is compatible with the Ruby implementation at
 https://github.com/hgmnz/fernet. They can exchange tokens
 freely in both directions.
 
-See http://godoc.org/github.com/kr/fernet for documentation.
+Documentation: http://godoc.org/github.com/kr/fernet
 
 
 INSTALL

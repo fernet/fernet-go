@@ -1,9 +1,10 @@
-// Package fernet generates and verifies HMAC-based authentication tokens. It
-// also encrypts data, so it can be used to transmit secure messages over the
-// wire.
+// Package fernet takes a user-provided message (an arbitrary
+// sequence of bytes), a key (256 bits of entropy), and the
+// current time, and produces a token, which contains the message
+// in a form that can't be read or altered without the key.
 //
-// For more information and background, see the original Fernet project at
-// https://github.com/hgmnz/fernet.
+// For more information and background, see the original Fernet
+// project at https://github.com/hgmnz/fernet.
 package fernet
 
 import (
