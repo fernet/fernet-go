@@ -5,6 +5,8 @@
 //
 // For more information and background, see the original Fernet
 // project at https://github.com/hgmnz/fernet.
+//
+// This package also ships with a cli key generation utility called fernet-keygen.
 package fernet
 
 import (
