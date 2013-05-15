@@ -8,7 +8,10 @@ import (
 	"io"
 )
 
-var errKeyLen = errors.New("fernet: key decodes to wrong size")
+var (
+	errKeyLen = errors.New("fernet: key decodes to wrong size")
+	errNoKeys = errors.New("fernet: no keys provided")
+)
 
 type Key [32]byte
 
@@ -55,9 +58,12 @@ func DecodeKey(s string) (*Key, error) {
 	return k, nil
 }
 
-// Decodes each element of a using DecodeKey returns the resulting
-// keys.
+// Decodes each element of a using DecodeKey and returns the resulting
+// keys. Requires at least one key.
 func DecodeKeys(a ...string) ([]*Key, error) {
+	if len(a) == 0 {
+		return nil, errNoKeys
+	}
 	var err error
 	ks := make([]*Key, len(a))
 	for i, s := range a {

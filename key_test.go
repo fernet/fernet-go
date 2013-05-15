@@ -78,13 +78,23 @@ var encodeKeys = []struct {
 	},
 }
 
-func TestDecodeKeys(t *testing.T) {
+func TestDecodeKey(t *testing.T) {
 	for _, w := range decodeKeys {
 		if g, err := DecodeKey(w.enc); err != nil {
 			t.Fatal(err)
 		} else if *g != w.key {
 			t.Fatalf("expected %q, got %q", w.key, *g)
 		}
+	}
+}
+
+func TestDecodeKeys(t *testing.T) {
+	keys, err := DecodeKeys()
+	if err == nil {
+		t.Fatal("expected err, got nil")
+	}
+	if keys != nil {
+		t.Fatalf("expected nil keys, got %#v", keys)
 	}
 }
 
