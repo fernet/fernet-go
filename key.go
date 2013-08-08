@@ -39,6 +39,9 @@ func (k *Key) Encode() string {
 func DecodeKey(s string) (*Key, error) {
 	var b []byte
 	var err error
+	if s == "" {
+		return nil, errors.New("empty key")
+	}
 	if len(s) == hex.EncodedLen(len(Key{})) {
 		b, err = hex.DecodeString(s)
 	} else {
