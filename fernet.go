@@ -65,14 +65,14 @@ func verify(msg, tok []byte, ttl time.Duration, now time.Time, k *Key) []byte {
 	if len(tok) < 1 || tok[0] != version {
 		return nil
 	}
+	ts := time.Unix(int64(binary.BigEndian.Uint64(tok[1:])), 0)
+	if now.After(ts.Add(ttl)) || ts.After(now.Add(maxClockSkew)) {
+		return nil
+	}
 	n := len(tok) - sha256.Size
 	var hmac [sha256.Size]byte
 	genhmac(hmac[:0], tok[:n], k.signBytes())
 	if subtle.ConstantTimeCompare(tok[n:], hmac[:]) != 1 {
-		return nil
-	}
-	ts := time.Unix(int64(binary.BigEndian.Uint64(tok[1:])), 0)
-	if now.After(ts.Add(ttl)) || ts.After(now.Add(maxClockSkew)) {
 		return nil
 	}
 	pay := tok[payOffset : len(tok)-sha256.Size]
