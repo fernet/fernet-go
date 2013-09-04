@@ -3,10 +3,11 @@
 // current time, and produces a token, which contains the message
 // in a form that can't be read or altered without the key.
 //
-// For more information and background, see the original Fernet
-// project at https://github.com/hgmnz/fernet.
+// For more information and background, see the Fernet spec
+// at https://github.com/fernet/spec.
 //
-// This package also ships with a cli key generation utility called fernet-keygen.
+// Subdirectories in this package provide command-line tools
+// for working with Fernet keys and tokens.
 package fernet
 
 import (
