@@ -1,7 +1,7 @@
 // Package fernet takes a user-provided message (an arbitrary
-// sequence of bytes), a key (256 bits of entropy), and the
-// current time, and produces a token, which contains the message
-// in a form that can't be read or altered without the key.
+// sequence of bytes), a key (256 bits), and the current time,
+// and produces a token, which contains the message in a form
+// that can't be read or altered without the key.
 //
 // For more information and background, see the Fernet spec
 // at https://github.com/fernet/spec.
