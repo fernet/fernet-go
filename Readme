@@ -7,12 +7,12 @@ This package is compatible with the Ruby implementation at
 https://github.com/hgmnz/fernet. They can exchange tokens
 freely in both directions.
 
-Documentation: http://godoc.org/github.com/kr/fernet
+Documentation: http://godoc.org/github.com/fernet/fernet-go
 
 
 INSTALL
 
-	$ go get github.com/kr/fernet
+	$ go get github.com/fernet/fernet-go
 
 
 For more information and background, see the original Fernet

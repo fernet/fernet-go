@@ -2,7 +2,7 @@ package fernet_test
 
 import (
 	"fmt"
-	"github.com/kr/fernet"
+	"github.com/fernet/fernet-go"
 	"time"
 )
 

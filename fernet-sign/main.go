@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/kr/fernet"
+	"github.com/fernet/fernet-go"
 	"io/ioutil"
 	"log"
 	"os"
