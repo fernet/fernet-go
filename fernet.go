@@ -11,6 +11,7 @@
 package fernet
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/hmac"
@@ -20,6 +21,7 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"io"
+	"io/ioutil"
 	"time"
 )
 
@@ -137,32 +139,113 @@ func genhmac(q, p, k []byte) {
 	h.Sum(q)
 }
 
+type reader struct {
+	keys []*Key
+	ttl  time.Duration
+	r    io.Reader
+	buf  *bytes.Buffer
+	err  error
+}
+
+func (r *reader) Read(p []byte) (n int, err error) {
+	if r.err != nil {
+		return 0, r.err
+	}
+
+	if r.buf == nil {
+		r.buf = &bytes.Buffer{}
+		if _, r.err = io.Copy(r.buf, r.r); r.err != nil {
+			return 0, r.err
+		}
+		for _, k := range r.keys {
+			msg := verify(nil, r.buf.Bytes(), r.ttl, time.Now(), k)
+			if msg != nil {
+				r.buf = bytes.NewBuffer(msg)
+			}
+		}
+	}
+
+	return r.buf.Read(p)
+}
+
+func (r *reader) Reset() {
+	r.buf = nil
+}
+
+func NewReader(keys []*Key, ttl time.Duration, r io.Reader) io.Reader {
+	return &reader{keys: keys, ttl: ttl, r: r}
+}
+
+type writer struct {
+	key *Key
+	w   io.Writer
+	buf *bytes.Buffer
+	err error
+	iv  []byte
+}
+
+func (w *writer) Write(p []byte) (n int, err error) {
+	if w.err != nil {
+		return 0, w.err
+	}
+
+	return w.buf.Write(p)
+}
+
+func (w *writer) Close() error {
+	if w.err != nil {
+		return w.err
+	}
+
+	// Initialize IV
+	iv := make([]byte, aes.BlockSize)
+	io.ReadFull(rand.Reader, iv)
+
+	b := make([]byte, encodedLen(w.buf.Len()))
+	n := gen(b, w.buf.Bytes(), iv, time.Now(), w.key)
+
+	if _, w.err = io.Copy(w.w, bytes.NewBuffer(b[:n])); w.err != nil {
+		return w.err
+	}
+
+	// Call underlying writer Close method if it exists.
+	if closer, ok := w.w.(io.Closer); ok {
+		w.err = closer.Close()
+	}
+
+	return w.err
+}
+
+func (w *writer) Reset() {
+	w.buf = &bytes.Buffer{}
+}
+
+func NewWriter(key *Key, w io.Writer) io.WriteCloser {
+	return &writer{key: key, w: w, buf: &bytes.Buffer{}}
+}
+
 // Encrypts and signs msg with key k and returns the resulting
 // fernet token. If msg contains text, the text should be encoded
 // with UTF-8 to follow fernet convention.
 func EncryptAndSign(msg []byte, k *Key) (tok []byte, err error) {
-	iv := make([]byte, aes.BlockSize)
-	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
+	buf := &bytes.Buffer{}
+	w := NewWriter(k, base64.NewEncoder(encoding, buf))
+	r := bytes.NewReader(msg)
+	if _, err := io.Copy(w, r); err != nil {
 		return nil, err
 	}
-	b := make([]byte, encodedLen(len(msg)))
-	n := gen(b, msg, iv, time.Now(), k)
-	tok = make([]byte, encoding.EncodedLen(n))
-	encoding.Encode(tok, b[:n])
-	return tok, nil
+	w.Close()
+	return buf.Bytes(), nil
 }
 
 // Verifies that tok is a valid fernet token that was signed with
 // a key in k at most ttl time ago. Returns the message contained
 // in tok if tok is valid, otherwise nil.
 func VerifyAndDecrypt(tok []byte, ttl time.Duration, k []*Key) (msg []byte) {
-	b := make([]byte, encoding.DecodedLen(len(tok)))
-	n, _ := encoding.Decode(b, tok)
-	for _, k1 := range k {
-		msg = verify(nil, b[:n], ttl, time.Now(), k1)
-		if msg != nil {
-			return msg
-		}
+	r := NewReader(k, ttl, base64.NewDecoder(encoding, bytes.NewReader(tok)))
+	msg, err := ioutil.ReadAll(r)
+	if err != nil {
+		return nil
 	}
-	return nil
+	return msg
 }
