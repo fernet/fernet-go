@@ -2,11 +2,15 @@ package main
 
 import (
 	"fmt"
-	"github.com/fernet/fernet-go"
 	"log"
+
+	"github.com/fernet/fernet-go"
 )
 
 func main() {
+	log.SetFlags(0)
+	log.SetPrefix("fernet: ")
+
 	var key fernet.Key
 	if err := key.Generate(); err != nil {
 		log.Fatal(err)
