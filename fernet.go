@@ -169,8 +169,9 @@ func (r *reader) Read(p []byte) (n int, err error) {
 	return r.buf.Read(p)
 }
 
-func (r *reader) Reset() {
+func (r *reader) Reset(nr io.Reader) {
 	r.buf = nil
+	r.r = nr
 }
 
 func NewReader(keys []*Key, ttl time.Duration, r io.Reader) io.Reader {
@@ -217,8 +218,9 @@ func (w *writer) Close() error {
 	return w.err
 }
 
-func (w *writer) Reset() {
+func (w *writer) Reset(nw io.Writer) {
 	w.buf = &bytes.Buffer{}
+	w.w = nw
 }
 
 func NewWriter(key *Key, w io.Writer) io.WriteCloser {
