@@ -140,11 +140,11 @@ func genhmac(q, p, k []byte) {
 }
 
 type reader struct {
-	keys []*Key
-	ttl  time.Duration
-	r    io.Reader
-	buf  *bytes.Buffer
-	err  error
+	plain *bytes.Buffer
+	ttl   time.Duration
+	keys  []*Key
+	r     io.Reader
+	err   error
 }
 
 func (r *reader) Read(p []byte) (n int, err error) {
@@ -152,25 +152,26 @@ func (r *reader) Read(p []byte) (n int, err error) {
 		return 0, r.err
 	}
 
-	if r.buf == nil {
-		r.buf = &bytes.Buffer{}
-		if _, r.err = io.Copy(r.buf, r.r); r.err != nil {
+	if r.plain == nil {
+		cypher, err := ioutil.ReadAll(r.r)
+		if err != nil {
+			r.err = err
 			return 0, r.err
 		}
 		for _, k := range r.keys {
-			msg := verify(nil, r.buf.Bytes(), r.ttl, time.Now(), k)
+			msg := verify(nil, cypher, r.ttl, time.Now(), k)
 			if msg != nil {
-				r.buf = bytes.NewBuffer(msg)
+				r.plain = bytes.NewBuffer(msg)
 				break
 			}
 		}
 	}
 
-	return r.buf.Read(p)
+	return r.plain.Read(p)
 }
 
 func (r *reader) Reset(nr io.Reader) {
-	r.buf = nil
+	r.plain = nil
 	r.r = nr
 }
 
