@@ -180,11 +180,12 @@ func NewReader(keys []*Key, ttl time.Duration, r io.Reader) io.Reader {
 }
 
 type writer struct {
-	key *Key
-	w   io.Writer
-	buf *bytes.Buffer
-	err error
-	iv  []byte
+	key    *Key
+	w      io.WriteCloser
+	buf    *bytes.Buffer
+	err    error
+	iv     []byte
+	closed bool
 }
 
 func (w *writer) Write(p []byte) (n int, err error) {
@@ -195,10 +196,17 @@ func (w *writer) Write(p []byte) (n int, err error) {
 	return w.buf.Write(p)
 }
 
+// Close closes the underlying Writer and returns its Close return value, if the Writer
+// is also an io.Closer. Otherwise it returns nil.
 func (w *writer) Close() error {
 	if w.err != nil {
 		return w.err
 	}
+
+	if w.closed {
+		return nil
+	}
+	w.closed = true
 
 	// Initialize IV
 	iv := make([]byte, aes.BlockSize)
@@ -211,20 +219,15 @@ func (w *writer) Close() error {
 		return w.err
 	}
 
-	// Call underlying writer Close method if it exists.
-	if closer, ok := w.w.(io.Closer); ok {
-		w.err = closer.Close()
-	}
-
-	return w.err
+	return w.w.Close()
 }
 
-func (w *writer) Reset(nw io.Writer) {
+func (w *writer) Reset(nw io.WriteCloser) {
 	w.buf = &bytes.Buffer{}
 	w.w = nw
 }
 
-func NewWriter(key *Key, w io.Writer) io.WriteCloser {
+func NewWriter(key *Key, w io.WriteCloser) io.WriteCloser {
 	return &writer{key: key, w: w, buf: &bytes.Buffer{}}
 }
 
