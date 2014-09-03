@@ -161,6 +161,7 @@ func (r *reader) Read(p []byte) (n int, err error) {
 			msg := verify(nil, r.buf.Bytes(), r.ttl, time.Now(), k)
 			if msg != nil {
 				r.buf = bytes.NewBuffer(msg)
+				break
 			}
 		}
 	}
@@ -204,7 +205,7 @@ func (w *writer) Close() error {
 	b := make([]byte, encodedLen(w.buf.Len()))
 	n := gen(b, w.buf.Bytes(), iv, time.Now(), w.key)
 
-	if _, w.err = io.Copy(w.w, bytes.NewBuffer(b[:n])); w.err != nil {
+	if _, w.err = w.w.Write(b[:n]); w.err != nil {
 		return w.err
 	}
 
