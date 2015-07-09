@@ -137,7 +137,7 @@ func genhmac(q, p, k []byte) {
 	h.Sum(q)
 }
 
-// Encrypts and signs msg with key k and returns the resulting
+// EncryptAndSign encrypts and signs msg with key k and returns the resulting
 // fernet token. If msg contains text, the text should be encoded
 // with UTF-8 to follow fernet convention.
 func EncryptAndSign(msg []byte, k *Key) (tok []byte, err error) {
@@ -152,8 +152,8 @@ func EncryptAndSign(msg []byte, k *Key) (tok []byte, err error) {
 	return tok, nil
 }
 
-// Verifies that tok is a valid fernet token that was signed with
-// a key in k at most ttl time ago. Returns the message contained
+// VerifyAndDecrypt verifies that tok is a valid fernet token that was signed
+// with a key in k at most ttl time ago. Returns the message contained
 // in tok if tok is valid, otherwise nil.
 func VerifyAndDecrypt(tok []byte, ttl time.Duration, k []*Key) (msg []byte) {
 	b := make([]byte, encoding.DecodedLen(len(tok)))

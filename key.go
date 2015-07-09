@@ -13,6 +13,7 @@ var (
 	errNoKeys = errors.New("fernet: no keys provided")
 )
 
+// Key represents a key.
 type Key [32]byte
 
 func (k *Key) cryptBytes() []byte {
@@ -23,18 +24,18 @@ func (k *Key) signBytes() []byte {
 	return k[:len(k)/2]
 }
 
-// Initializes k with pseudorandom data from package crypto/rand.
+// Generate initializes k with pseudorandom data from package crypto/rand.
 func (k *Key) Generate() error {
 	_, err := io.ReadFull(rand.Reader, k[:])
 	return err
 }
 
-// Returns the URL-safe base64 encoding of k.
+// Encode returns the URL-safe base64 encoding of k.
 func (k *Key) Encode() string {
 	return encoding.EncodeToString(k[:])
 }
 
-// Decodes a key from s and returns it. The key can be in
+// DecodeKey decodes a key from s and returns it. The key can be in
 // hexadecimal, standard base64, or URL-safe base64.
 func DecodeKey(s string) (*Key, error) {
 	var b []byte
@@ -61,8 +62,8 @@ func DecodeKey(s string) (*Key, error) {
 	return k, nil
 }
 
-// Decodes each element of a using DecodeKey and returns the resulting
-// keys. Requires at least one key.
+// DecodeKeys decodes each element of a using DecodeKey and returns the
+// resulting keys. Requires at least one key.
 func DecodeKeys(a ...string) ([]*Key, error) {
 	if len(a) == 0 {
 		return nil, errNoKeys

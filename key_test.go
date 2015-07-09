@@ -1,8 +1,6 @@
 package fernet
 
-import (
-	"testing"
-)
+import "testing"
 
 var decodeKeys = []struct {
 	enc string

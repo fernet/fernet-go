@@ -2,8 +2,9 @@ package fernet_test
 
 import (
 	"fmt"
-	"github.com/fernet/fernet-go"
 	"time"
+
+	"github.com/fernet/fernet-go"
 )
 
 func Example() {
