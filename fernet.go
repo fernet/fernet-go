@@ -67,7 +67,7 @@ func verify(msg, tok []byte, ttl time.Duration, now time.Time, k *Key) []byte {
 		return nil
 	}
 	ts := time.Unix(int64(binary.BigEndian.Uint64(tok[1:])), 0)
-	if now.After(ts.Add(ttl)) || ts.After(now.Add(maxClockSkew)) {
+	if ttl >= 0 && (now.After(ts.Add(ttl)) || ts.After(now.Add(maxClockSkew))) {
 		return nil
 	}
 	n := len(tok) - sha256.Size
@@ -153,8 +153,8 @@ func EncryptAndSign(msg []byte, k *Key) (tok []byte, err error) {
 }
 
 // VerifyAndDecrypt verifies that tok is a valid fernet token that was signed
-// with a key in k at most ttl time ago. Returns the message contained
-// in tok if tok is valid, otherwise nil.
+// with a key in k at most ttl time ago only if ttl is greater than zero.
+// Returns the message contained in tok if tok is valid, otherwise nil.
 func VerifyAndDecrypt(tok []byte, ttl time.Duration, k []*Key) (msg []byte) {
 	b := make([]byte, encoding.DecodedLen(len(tok)))
 	n, _ := encoding.Decode(b, tok)
