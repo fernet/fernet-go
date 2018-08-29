@@ -66,9 +66,11 @@ func verify(msg, tok []byte, ttl time.Duration, now time.Time, k *Key) []byte {
 	if len(tok) < 1 || tok[0] != version {
 		return nil
 	}
-	ts := time.Unix(int64(binary.BigEndian.Uint64(tok[1:])), 0)
-	if ttl > 0 && (now.After(ts.Add(ttl)) || ts.After(now.Add(maxClockSkew))) {
-		return nil
+	if ttl > 0 {
+		ts := time.Unix(int64(binary.BigEndian.Uint64(tok[1:])), 0)
+		if now.After(ts.Add(ttl)) || ts.After(now.Add(maxClockSkew)) {
+			return nil
+		}
 	}
 	n := len(tok) - sha256.Size
 	var hmac [sha256.Size]byte
