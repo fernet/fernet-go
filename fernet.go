@@ -137,19 +137,26 @@ func genhmac(q, p, k []byte) {
 	h.Sum(q)
 }
 
-// EncryptAndSign encrypts and signs msg with key k and returns the resulting
-// fernet token. If msg contains text, the text should be encoded
-// with UTF-8 to follow fernet convention.
-func EncryptAndSign(msg []byte, k *Key) (tok []byte, err error) {
+// EncryptAndSignAtTime encrypts and signs msg with key k at timestamp signedAt
+// and returns the resulting fernet token. If msg contains text, the text
+// should be encoded with UTF-8 to follow fernet convention.
+func EncryptAndSignAtTime(msg []byte, k *Key, signedAt time.Time) (tok []byte, err error) {
 	iv := make([]byte, aes.BlockSize)
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
 		return nil, err
 	}
 	b := make([]byte, encodedLen(len(msg)))
-	n := gen(b, msg, iv, time.Now(), k)
+	n := gen(b, msg, iv, signedAt, k)
 	tok = make([]byte, encoding.EncodedLen(n))
 	encoding.Encode(tok, b[:n])
 	return tok, nil
+}
+
+// EncryptAndSign encrypts and signs msg with key k and returns the resulting
+// fernet token. If msg contains text, the text should be encoded
+// with UTF-8 to follow fernet convention.
+func EncryptAndSign(msg []byte, k *Key) (tok []byte, err error) {
+	return EncryptAndSignAtTime(msg, k, time.Now())
 }
 
 // VerifyAndDecrypt verifies that tok is a valid fernet token that was signed
