@@ -71,6 +71,9 @@ func verify(msg, tok []byte, ttl time.Duration, now time.Time, k *Key) []byte {
 		return nil
 	}
 	n := len(tok) - sha256.Size
+	if n <= 0 {
+		return nil
+	}
 	var hmac [sha256.Size]byte
 	genhmac(hmac[:0], tok[:n], k.signBytes())
 	if subtle.ConstantTimeCompare(tok[n:], hmac[:]) != 1 {
