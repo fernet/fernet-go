@@ -79,7 +79,7 @@ func verify(msg, tok []byte, ttl time.Duration, now time.Time, k *Key) []byte {
 	if subtle.ConstantTimeCompare(tok[n:], hmac[:]) != 1 {
 		return nil
 	}
-	pay := tok[payOffset : len(tok)-sha256.Size]
+	pay := tok[payOffset:n]
 	if len(pay)%aes.BlockSize != 0 {
 		return nil
 	}
@@ -88,7 +88,7 @@ func verify(msg, tok []byte, ttl time.Duration, now time.Time, k *Key) []byte {
 		pay = msg
 	}
 	bc, _ := aes.NewCipher(k.cryptBytes())
-	iv := tok[9:][:aes.BlockSize]
+	iv := tok[ivOffset:][:aes.BlockSize]
 	cipher.NewCBCDecrypter(bc, iv).CryptBlocks(pay, pay)
 	return unpad(pay)
 }
@@ -117,21 +117,6 @@ func unpad(p []byte) []byte {
 		}
 	}
 	return p[:len(p)-int(c)]
-}
-
-func b64enc(src []byte) []byte {
-	dst := make([]byte, encoding.EncodedLen(len(src)))
-	encoding.Encode(dst, src)
-	return dst
-}
-
-func b64dec(src []byte) []byte {
-	dst := make([]byte, encoding.DecodedLen(len(src)))
-	n, err := encoding.Decode(dst, src)
-	if err != nil {
-		return nil
-	}
-	return dst[:n]
 }
 
 func genhmac(q, p, k []byte) {
