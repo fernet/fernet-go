@@ -61,5 +61,12 @@
     "now": "1985-10-26T01:20:01-07:00",
     "ttl_sec": 0,
     "secret": "cw_0x689RpI-jtRR7oE8h_eQsKImvJapLeSbXpwF4e4="
+  },
+  {
+    "desc": "super short payload size",
+    "token": "gAAA",
+    "now": "1985-10-26T01:20:01-07:00",
+    "ttl_sec": 0,
+    "secret": "cw_0x689RpI-jtRR7oE8h_eQsKImvJapLeSbXpwF4e4="
   }
 ]
